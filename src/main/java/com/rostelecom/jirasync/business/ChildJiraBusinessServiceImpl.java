@@ -1,6 +1,5 @@
 package com.rostelecom.jirasync.business;
 
-import ch.qos.logback.core.status.StatusManager;
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.domain.*;
@@ -14,14 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService{
+public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
     @Autowired
     private ChildJiraClient jiraClient;
 
@@ -31,12 +30,15 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService{
     private JiraSettings jiraSettings;
 
     @Autowired
-    private void setRestClient(ChildJiraClient jiraClient){
-        this.restClient = jiraClient.getJiraRestClient();
+    private JiraBusinessService jiraBusinessService;
+
+    public JiraRestClient getRestClient() {
+        return restClient;
     }
 
-    public JiraRestClient getRestClient(){
-        return restClient;
+    @Autowired
+    private void setRestClient(ChildJiraClient jiraClient) {
+        this.restClient = jiraClient.getJiraRestClient();
     }
 
     @Override
@@ -67,25 +69,39 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService{
                 .claim();
     }
 
-    public void updateIssueCommentsAndStatus(String issueKey, List<Comment> parentComments, List<Comment> childComments){
-
+    public void updateIssueCommentsAndStatus(String parentIssueKey, String childIssueKey,
+                                             List<Comment> parentComments, List<Comment> childComments) {
         IssueRestClient client = restClient.getIssueClient();
-        List<Comment> list = new ArrayList<>();
-        list.addAll(childComments.stream()
-        .filter(ch -> !parentComments.contains(ch))
-        .collect(toList()));
+        LinkedList<Comment> list = getCommentList(parentComments, childComments);
 
-        for(Comment comment: list){
-            client.addComment(client.getIssue(issueKey).claim().getCommentsUri(), comment);
+        for (Comment comment : list) {
+            client.addComment(client.getIssue(childIssueKey).claim().getCommentsUri(), comment).claim();
         }
-        client.transition(client.getIssue(issueKey).claim(), new TransitionInput(getTransition(issueKey)));
+
+        client.transition(client.getIssue(childIssueKey).claim(), new TransitionInput(getTransition(parentIssueKey)));
     }
 
-    private Integer getTransition(String issueKey){
-        IssueRestClient client = restClient.getIssueClient();
-        Issue issue = client.getIssue(issueKey).claim();
-        Status status =  issue.getStatus();
-        switch (status.getName()){
+    private LinkedList<Comment> getCommentList(List<Comment> parentComments, List<Comment> childComments) {
+        LinkedList<Comment> list = new LinkedList<>();
+        list.addAll(parentComments
+                .stream()
+                .filter(pc -> {
+                    for (Comment child : childComments) {
+                        boolean isBodyEquals = child.getBody().equals(pc.getBody());
+                        if (isBodyEquals) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .collect(toList()));
+        return list;
+    }
+
+    private Integer getTransition(String issueKey) {
+        Issue issue = jiraBusinessService.getIssue(issueKey);
+        Status status = issue.getStatus();
+        switch (status.getName().toUpperCase()) {
             case "НОВЫЙ":
             case "В РАБОТЕ":
                 return 1000;

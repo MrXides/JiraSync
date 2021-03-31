@@ -18,7 +18,7 @@ import java.util.*;
 
 @Service
 @EnableScheduling
-public class ScheduleCopy {
+public class Schedule {
     @Autowired
     private JiraBusinessService jiraBusinessService;
     @Autowired
@@ -26,12 +26,15 @@ public class ScheduleCopy {
     @Autowired
     JiraSettings jiraSettings;
 
-    //@Scheduled(fixedRate = 86400)
-    private void copyIssue(){
-        Set<String> set = new HashSet<String>();
+    /**
+     * Синхронизация комментариев и статусов каждые 4 часа
+     */
+    @Scheduled(fixedRate = 14400)
+    private void Synchronization() {
+        Set<String> set = new HashSet<>();
         set.add("*all");
-        Promise<SearchResult> searchParentResultPromise =  jiraBusinessService.getRestClient().getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() +" AND issueType = \"Ошибка\"", 500000, 0, set);
-        Promise<SearchResult> searchChildResultPromise =  childJiraBusinessService.getRestClient().getSearchClient().searchJql("project = " + jiraSettings.getChildProjectKey() +" AND issueType = \"MES Ошибка\"", 10000, 0, set);
+        Promise<SearchResult> searchParentResultPromise = jiraBusinessService.getRestClient().getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() + " AND issueType = \"Ошибка\"", 50000, 0, set);
+        Promise<SearchResult> searchChildResultPromise = childJiraBusinessService.getRestClient().getSearchClient().searchJql("project = " + jiraSettings.getChildProjectKey() + " AND issueType = \"MES Ошибка\"", 50000, 0, set);
 
         List<Issue> issueParentList;
         List<Issue> issueChildList;
@@ -40,10 +43,9 @@ public class ScheduleCopy {
 
         issueChildList = (List<Issue>) searchChildResultPromise.claim().getIssues();
 
-
-        for(Issue issue : issueParentList){
-            for(Issue childIssue : issueChildList){
-                if(childIssue.getSummary().equalsIgnoreCase(issue.getSummary())){
+        for (Issue issue : issueParentList) {
+            for (Issue childIssue : issueChildList) {
+                if (childIssue.getSummary().equalsIgnoreCase(issue.getSummary())) {
 
                     List<Comment> parentComment = new ArrayList<>();
                     List<Comment> childComment = new ArrayList<>();
@@ -51,7 +53,7 @@ public class ScheduleCopy {
                     Iterator<Comment> parentIterator = issue.getComments().iterator();
                     Iterator<Comment> childIterator = childIssue.getComments().iterator();
 
-                    while(parentIterator.hasNext()){
+                    while (parentIterator.hasNext()) {
                         parentComment.add(parentIterator.next());
                     }
 
@@ -59,7 +61,7 @@ public class ScheduleCopy {
                         childComment.add(childIterator.next());
                     }
 
-                    childJiraBusinessService.updateIssueCommentsAndStatus(childIssue.getKey(), parentComment, childComment);
+                    childJiraBusinessService.updateIssueCommentsAndStatus(issue.getKey(), childIssue.getKey(), parentComment, childComment);
                 }
             }
         }
