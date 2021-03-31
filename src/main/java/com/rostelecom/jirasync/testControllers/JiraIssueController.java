@@ -1,4 +1,4 @@
-package com.rostelecom.jirasync.controllers;
+package com.rostelecom.jirasync.testControllers;
 
 import com.rostelecom.jirasync.business.ChildJiraBusinessService;
 import com.rostelecom.jirasync.business.JiraBusinessService;
@@ -18,21 +18,16 @@ public class JiraIssueController {
 
     @PostMapping("/createchild")
     protected String createChildIssue(@RequestParam("projectKey") String projectKey,
-                                 @RequestParam("issueType") Long issueType,
-                                 @RequestParam("issueSummary") String issueSummary){
+                                      @RequestParam("issueType") Long issueType,
+                                      @RequestParam("issueSummary") String issueSummary) {
         return jiraBusinessService.createIssue(projectKey, issueType, issueSummary);
     }
 
     @PostMapping("/createparent")
     protected String createParentIssue(@RequestParam("projectKey") String projectKey,
-                                 @RequestParam("issueType") Long issueType,
-                                 @RequestParam("issueSummary") String issueSummary){
+                                       @RequestParam("issueType") Long issueType,
+                                       @RequestParam("issueSummary") String issueSummary) {
         return jiraBusinessService.createIssue(projectKey, issueType, issueSummary);
-    }
-
-    @GetMapping("/copy")
-    protected void copy(){
-        jiraBusinessService.copyIssue();
     }
 
     @GetMapping("/infoParent")
@@ -44,4 +39,11 @@ public class JiraIssueController {
     protected void infoChild() throws ExecutionException, InterruptedException {
         childJiraBusinessService.getInfo();
     }
+
+    @GetMapping("/testChild")
+    protected void testChild() {
+        childJiraBusinessService.test();
+    }
+
+
 }
