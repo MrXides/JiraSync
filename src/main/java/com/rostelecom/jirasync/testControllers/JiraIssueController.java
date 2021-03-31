@@ -1,4 +1,4 @@
-package com.rostelecom.jirasync.controllers;
+package com.rostelecom.jirasync.testControllers;
 
 import com.rostelecom.jirasync.business.ChildJiraBusinessService;
 import com.rostelecom.jirasync.business.JiraBusinessService;
@@ -28,11 +28,6 @@ public class JiraIssueController {
                                  @RequestParam("issueType") Long issueType,
                                  @RequestParam("issueSummary") String issueSummary){
         return jiraBusinessService.createIssue(projectKey, issueType, issueSummary);
-    }
-
-    @GetMapping("/copy")
-    protected void copy(){
-        jiraBusinessService.copyIssue();
     }
 
     @GetMapping("/infoParent")

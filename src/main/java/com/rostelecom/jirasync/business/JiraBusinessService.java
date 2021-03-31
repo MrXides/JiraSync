@@ -11,6 +11,5 @@ public interface JiraBusinessService {
     void updateIssueDescription(String issueKey, String newDescription);
     Issue getIssue(String issueKey);
     void deleteIssue(String issueKey, boolean deleteSubtasks);
-    void copyIssue();
     void getInfo() throws ExecutionException, InterruptedException;
 }
