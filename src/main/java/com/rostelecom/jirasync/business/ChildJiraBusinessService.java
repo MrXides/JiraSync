@@ -8,14 +8,21 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public interface ChildJiraBusinessService {
-    String createIssue(String projectKey, Long issueType, String issueSummary);
-    String createIssue(Issue issue);
-    void updateIssueDescription(String issueKey, String newDescription);
     Issue getIssue(String issueKey);
-    void deleteIssue(String issueKey, boolean deleteSubtasks);
+
     JiraRestClient getRestClient();
 
     void getInfo() throws ExecutionException, InterruptedException;
 
+    String createIssue(String projectKey, Long issueType, String issueSummary);
+
+    String createIssue(Issue issue);
+
+    void updateIssueDescription(String issueKey, String newDescription);
+
     void updateIssueCommentsAndStatus(String parentIssueKey, String childIssueKey, List<Comment> parentComments, List<Comment> childComments);
+
+    void deleteIssue(String issueKey, boolean deleteSubtasks);
+
+    void test();
 }

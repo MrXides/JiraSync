@@ -10,8 +10,8 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan("com.rostelecom")
 public class JiraSyncApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JiraSyncApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(JiraSyncApplication.class, args);
+    }
 
 }

@@ -18,25 +18,65 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class JiraBusinessServiceImpl implements JiraBusinessService{
+public class JiraBusinessServiceImpl implements JiraBusinessService {
     @Autowired
     private JiraClient jiraClient;
 
     private JiraRestClient restClient;
-
-    @Autowired
-    private void setRestClient(JiraClient jiraClient){
-        this.restClient = jiraClient.getJiraRestClient();
-    }
-
     @Autowired
     private JiraSettings jiraSettings;
     @Autowired
     private ChildJiraBusinessService childJiraBusinessService;
 
     @Override
-    public JiraRestClient getRestClient(){
+    public Issue getIssue(String issueKey) {
+        return restClient.getIssueClient()
+                .getIssue(issueKey)
+                .claim();
+    }
+
+    @Override
+    public JiraRestClient getRestClient() {
         return restClient;
+    }
+
+    @Autowired
+    private void setRestClient(JiraClient jiraClient) {
+        this.restClient = jiraClient.getJiraRestClient();
+    }
+
+    public void getInfo() throws ExecutionException, InterruptedException {
+        Iterable<BasicProject> projects = restClient.getProjectClient().getAllProjects().claim();
+        BasicProject myProject;
+        for (BasicProject project : projects) {
+            if (project.getName().equalsIgnoreCase("Омничат Dev")) {
+                myProject = project;
+            }
+        }
+
+        Promise<Project> project = restClient.getProjectClient().getProject(jiraSettings.getParentProjectKey());
+        List<IssueType> list = new ArrayList<>();
+        for (IssueType type : (project.get()).getIssueTypes()) {
+            list.add(type);
+        }
+
+
+        Set<String> set = new HashSet<>();
+        set.add("*all");
+        Promise<SearchResult> searchParentResultPromise = restClient.getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() + " AND issueType = \"Ошибка\"", 500000, 0, set);
+        List<Issue> issueParentList;
+        issueParentList = (List<Issue>) searchParentResultPromise.claim().getIssues();
+        IssueRestClient client = restClient.getIssueClient();
+        Promise<Iterable<Transition>> transitionList = client.getTransitions(issueParentList.get(0));
+        List<Transition> transitions = new ArrayList<>();
+        for (; ; ) {
+            if (transitionList.claim().iterator().hasNext()) {
+                transitions.add(transitionList.claim().iterator().next());
+            } else {
+                break;
+            }
+        }
+        int i = 0;
     }
 
     @Override
@@ -60,50 +100,10 @@ public class JiraBusinessServiceImpl implements JiraBusinessService{
     }
 
     @Override
-    public Issue getIssue(String issueKey) {
-        return restClient.getIssueClient()
-                .getIssue(issueKey)
-                .claim();
-    }
-
-    @Override
     public void deleteIssue(String issueKey, boolean deleteSubtasks) {
         restClient.getIssueClient()
                 .deleteIssue(issueKey, deleteSubtasks)
                 .claim();
     }
 
-    public void getInfo() throws ExecutionException, InterruptedException {
-        Iterable<BasicProject> projects = restClient.getProjectClient().getAllProjects().claim();
-        BasicProject myProject;
-        for(BasicProject project : projects){
-            if(project.getName().equalsIgnoreCase("Омничат Dev")){
-                myProject = project;
-            }
-        }
-
-        Promise<Project> project = restClient.getProjectClient().getProject(jiraSettings.getParentProjectKey());
-        List<IssueType> list = new ArrayList<>();
-        for(IssueType type : (project.get()).getIssueTypes()){
-            list.add(type);
-        }
-
-
-        Set<String> set = new HashSet<>();
-        set.add("*all");
-        Promise<SearchResult> searchParentResultPromise =  restClient.getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() +" AND issueType = \"Ошибка\"", 500000, 0, set);
-        List<Issue> issueParentList;
-        issueParentList = (List<Issue>) searchParentResultPromise.claim().getIssues();
-        IssueRestClient client = restClient.getIssueClient();
-        Promise<Iterable<Transition>> transitionList = client.getTransitions(issueParentList.get(0));
-        List<Transition> transitions = new ArrayList<>();
-        for(; ;){
-            if(transitionList.claim().iterator().hasNext()){
-                transitions.add(transitionList.claim().iterator().next());
-            }else{
-                break;
-            }
-        }
-        int i = 0;
-    }
 }

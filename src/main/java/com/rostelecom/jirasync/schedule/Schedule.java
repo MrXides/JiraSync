@@ -20,16 +20,16 @@ import java.util.*;
 @EnableScheduling
 public class Schedule {
     @Autowired
+    JiraSettings jiraSettings;
+    @Autowired
     private JiraBusinessService jiraBusinessService;
     @Autowired
     private ChildJiraBusinessService childJiraBusinessService;
-    @Autowired
-    JiraSettings jiraSettings;
 
     /**
      * Синхронизация комментариев и статусов каждые 4 часа
      */
-    @Scheduled(fixedRate = 14400)
+    @Scheduled(fixedRate = 14400000)
     private void Synchronization() {
         Set<String> set = new HashSet<>();
         set.add("*all");
@@ -57,7 +57,7 @@ public class Schedule {
                         parentComment.add(parentIterator.next());
                     }
 
-                    while(childIterator.hasNext()){
+                    while (childIterator.hasNext()) {
                         childComment.add(childIterator.next());
                     }
 
