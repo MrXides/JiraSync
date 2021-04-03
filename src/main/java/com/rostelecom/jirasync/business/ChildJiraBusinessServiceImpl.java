@@ -12,6 +12,8 @@ import com.rostelecom.jirasync.pathFinding.StatusTransition;
 import com.rostelecom.jirasync.pathFinding.TransitionPath;
 import com.rostelecom.jirasync.settings.JiraSettings;
 import io.atlassian.util.concurrent.Promise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +37,10 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
     @Autowired
     private JiraBusinessService jiraBusinessService;
 
-
     @Autowired
     private PathSettings pathSettings;
+
+    private static final Logger logger = LoggerFactory.getLogger(ChildJiraBusinessServiceImpl.class);
 
     @Override
     public Issue getIssue(String issueKey) {
@@ -62,6 +65,7 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
         for (BasicProject project : projects) {
             if (project.getName().equalsIgnoreCase("MES")) {
                 myProject = project;
+                logger.debug("Проект с именем {} - существует", myProject.getName());
             }
         }
 
@@ -69,8 +73,8 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
         List<IssueType> list = new ArrayList<>();
         for (IssueType type : (project.get()).getIssueTypes()) {
             list.add(type);
+            logger.debug("Присутствует IssueType - {}", type.getName());
         }
-        int i = 0;
     }
 
     @Override
@@ -110,7 +114,12 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
         Issue childIssue = getIssue(childIssueKey);
 
         for (Comment comment : list) {
-            client.addComment(childIssue.getCommentsUri(), comment).claim();
+            try {
+                client.addComment(childIssue.getCommentsUri(), comment).claim();
+                logger.info("Для Issue {} был добавлен новый комментарий", childIssue.getKey());
+            } catch (Exception ex) {
+                logger.error("Ошибка при добавлении нового комментария для Issue {}. {}", childIssue.getKey(), ex.getMessage());
+            }
         }
 
         try {
@@ -122,9 +131,10 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
                 for (Integer id : path) {
                     client.transition(childIssue, new TransitionInput(id)).claim();
                 }
+                logger.info("Для Issue {} был обновлён статус", childIssue.getKey());
             }
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            logger.error("Ошибка при установке нового статуса для Issue {}. {}", childIssue.getKey(), ex.getMessage());
         }
     }
 

@@ -8,6 +8,8 @@ import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.rostelecom.jirasync.clients.JiraClient;
 import com.rostelecom.jirasync.settings.JiraSettings;
 import io.atlassian.util.concurrent.Promise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +25,14 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
     private JiraClient jiraClient;
 
     private JiraRestClient restClient;
+
     @Autowired
     private JiraSettings jiraSettings;
+
     @Autowired
     private ChildJiraBusinessService childJiraBusinessService;
+
+    private static final Logger logger = LoggerFactory.getLogger(JiraBusinessServiceImpl.class);
 
     @Override
     public Issue getIssue(String issueKey) {
@@ -51,6 +57,7 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
         for (BasicProject project : projects) {
             if (project.getName().equalsIgnoreCase("Омничат Dev")) {
                 myProject = project;
+                logger.debug("Проект с именем {} - существует", myProject.getName());
             }
         }
 
@@ -58,6 +65,7 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
         List<IssueType> list = new ArrayList<>();
         for (IssueType type : (project.get()).getIssueTypes()) {
             list.add(type);
+            logger.debug("Присутствует IssueType - {}", type.getName());
         }
 
 
@@ -76,7 +84,6 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
                 break;
             }
         }
-        int i = 0;
     }
 
     @Override
