@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 public class TransitionPath {
-    List<Integer> path;
     private int id;
     private String nameTo;
+    private List<Integer> path;
 }
