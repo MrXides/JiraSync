@@ -15,7 +15,7 @@ public class PathSettings {
 
     private final List<StatusTransition> statusTransitions = Arrays.asList(
             new StatusTransition(10000, "Сделать", Arrays.asList(
-                    new TransitionPath(10405, "Отклонён", Arrays.asList(0)),//ИЗМЕНИТЬ C 0 НА КОРРЕКТНЫЙ TRANSATIONINPUT ID
+                    new TransitionPath(10405, "Отклонён", Arrays.asList(21)),
                     new TransitionPath(3, "Исправление", Arrays.asList(11)),
                     new TransitionPath(10300, "Code Review", Arrays.asList(11, 71)),
                     new TransitionPath(10500, "Update server", Arrays.asList(11, 71, 81)),
@@ -23,7 +23,7 @@ public class PathSettings {
                     new TransitionPath(10729, "Testing", Arrays.asList(11, 71, 81, 91, 101)),
                     new TransitionPath(11500, "Waiting merge", Arrays.asList(11, 71, 81, 91, 101, 111)),
                     new TransitionPath(10001, "Done", Arrays.asList(11, 71, 81, 91, 101, 111, 121)),
-                    new TransitionPath(10305, "Переоткрыта", Arrays.asList(0, 61)), //ИЗМЕНИТЬ C 0 НА КОРРЕКТНЫЙ TRANSATIONINPUT ID
+                    new TransitionPath(10305, "Переоткрыта", Arrays.asList(21, 61)),
                     new TransitionPath(10408, "В ожидании", Arrays.asList(11, 31))
             )),
 
@@ -120,7 +120,6 @@ public class PathSettings {
             )),
             new StatusTransition(10408, "В ожидании", Arrays.asList(
                     new TransitionPath(10405, "Отклонён", Arrays.asList(151)),
-
                     new TransitionPath(3, "Исправление", Arrays.asList(51)),
                     new TransitionPath(10300, "Code Review", Arrays.asList(51, 71)),
                     new TransitionPath(10500, "Update server", Arrays.asList(51, 71, 81)),
