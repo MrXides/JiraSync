@@ -33,7 +33,7 @@ public class Scheduler {
     /**
      * Синхронизация комментариев и статусов каждые 4 часа
      */
-    @Scheduled(fixedRate = 14400000)
+    @Scheduled(fixedRate = 5400000)
     private void Synchronization() {
         logger.info("Начало синхронизации");
         Long startTime = System.currentTimeMillis();
