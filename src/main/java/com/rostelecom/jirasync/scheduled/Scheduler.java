@@ -43,20 +43,26 @@ public class Scheduler {
 
         Promise<SearchResult> searchParentResultPromise = jiraBusinessService.getRestClient().getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() + " AND issueType = \"Ошибка\"", 50000, 0, set);
 
-        List<Issue> issueParentList;
-        issueParentList = (List<Issue>) searchParentResultPromise.claim().getIssues();
+        List<Issue> issueParentList = (List<Issue>) searchParentResultPromise.claim().getIssues();
 
         logger.info("Количество Issue для возможного обновления - {}.", issueParentList.size());
-
+        if(issueParentList.size() == 0){
+            logger.info("Не удалось получить Issue из IHelp, проверьте Url на наличие https");
+            return;
+        }
+        String childKey = "";
         for (Issue issue : issueParentList) {
-            Promise<SearchResult> childSearchResult = childJiraBusinessService.getRestClient()
-                    .getSearchClient()
-                    .searchJql("project = " + jiraSettings.getChildProjectKey() + " AND summary ~ " + issue.getSummary(), 5, 0, set);
-
-            List<Issue> childIssueList = (List<Issue>) childSearchResult.claim().getIssues();
-
-            if (childIssueList.size() == 1) {
-                Issue childIssue = childJiraBusinessService.getIssue(childIssueList.get(0).getKey());
+            Set<String> labelsSet = issue.getLabels();
+            for(String label : labelsSet){
+                if(label.contains("MES"))
+                    childKey = label;
+            }
+            if(childKey.isEmpty()){
+                logger.error("Для Issue Ihelp {} отсутствует метка Issue на Omnichat", issue.getKey());
+                return;
+            }
+            Issue childIssue = childJiraBusinessService.getIssue(childKey);
+            if (childIssue != null) {
                 List<Comment> parentComment = new ArrayList<>();
                 List<Comment> childComment = new ArrayList<>();
 
