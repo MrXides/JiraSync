@@ -2,6 +2,7 @@ package com.rostelecom.jirasync.business;
 
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.api.UserRestClient;
 import com.atlassian.jira.rest.client.api.domain.*;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
@@ -115,7 +116,10 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
 
         for (Comment comment : list) {
             try {
-                client.addComment(childIssue.getCommentsUri(), comment).claim();
+                Comment newComment = new Comment(comment.getSelf(),
+                        comment.getAuthor().getDisplayName() + ": " + comment.getBody(), null, null,
+                        comment.getCreationDate(), comment.getUpdateDate(), comment.getVisibility(), null);
+                client.addComment(childIssue.getCommentsUri(), newComment).claim();
                 logger.info("Для Issue {} был добавлен новый комментарий", childIssue.getKey());
             } catch (Exception ex) {
                 logger.error("Ошибка при добавлении нового комментария для Issue {}. {}", childIssue.getKey(), ex.getMessage());
@@ -173,7 +177,8 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
                 .stream()
                 .filter(pc -> {
                     for (Comment child : childComments) {
-                        boolean isBodyEquals = child.getBody().equals(pc.getBody());
+                        //boolean isBodyEquals = child.getBody().equals(pc.getBody());
+                        boolean isBodyEquals = child.getBody().contains(pc.getBody());
                         if (isBodyEquals) {
                             return false;
                         }
