@@ -8,6 +8,9 @@ import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.api.domain.input.TransitionInput;
 import com.rostelecom.jirasync.clients.ChildJiraClient;
+import com.rostelecom.jirasync.enums.LogType;
+import com.rostelecom.jirasync.enums.OperationType;
+import com.rostelecom.jirasync.events.EventPublisher;
 import com.rostelecom.jirasync.pathFinding.PathSettings;
 import com.rostelecom.jirasync.pathFinding.StatusTransition;
 import com.rostelecom.jirasync.pathFinding.TransitionPath;
@@ -27,6 +30,9 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
+    @Autowired
+    private EventPublisher eventPublisher;
+
     @Autowired
     private ChildJiraClient jiraClient;
 
@@ -120,9 +126,10 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
                         comment.getAuthor().getDisplayName() + ": " + comment.getBody(), null, null,
                         comment.getCreationDate(), comment.getUpdateDate(), comment.getVisibility(), null);
                 client.addComment(childIssue.getCommentsUri(), newComment).claim();
-                logger.info("Для Issue {} был добавлен новый комментарий", childIssue.getKey());
+                eventPublisher.publishStandardEvent(this, String.format("Для Issue {0} был добавлен новый комментарий", childIssue.getKey()), LogType.INFO);
             } catch (Exception ex) {
-                logger.error("Ошибка при добавлении нового комментария для Issue {}. {}", childIssue.getKey(), ex.getMessage());
+                eventPublisher.publishEvent(this, childIssueKey, LogType.ERROR, OperationType.ADD_COMMENT_ERROR, "Ошибка при добавлении нового комментария"
+                + "\n" + ex.toString());
             }
         }
 
