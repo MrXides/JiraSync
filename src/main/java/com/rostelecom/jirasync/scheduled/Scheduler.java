@@ -6,6 +6,8 @@ import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.rostelecom.jirasync.business.ChildJiraBusinessService;
 import com.rostelecom.jirasync.business.JiraBusinessService;
+import com.rostelecom.jirasync.enums.LogType;
+import com.rostelecom.jirasync.events.EventPublisher;
 import com.rostelecom.jirasync.settings.JiraSettings;
 import io.atlassian.util.concurrent.Promise;
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 @EnableScheduling
 public class Scheduler {
+    @Autowired
+    private EventPublisher eventPublisher;
     private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
     @Autowired
     JiraSettings jiraSettings;
@@ -35,7 +39,7 @@ public class Scheduler {
      */
     @Scheduled(fixedRate = 5400000)
     private void Synchronization() {
-        logger.info("Начало синхронизации");
+        eventPublisher.publishStandardEvent(this,"Начало синхронизации", LogType.INFO);
         Long startTime = System.currentTimeMillis();
 
         Set<String> set = new HashSet<>();
@@ -45,9 +49,12 @@ public class Scheduler {
 
         List<Issue> issueParentList = (List<Issue>) searchParentResultPromise.claim().getIssues();
 
-        logger.info("Количество Issue для возможного обновления - {}.", issueParentList.size());
+        eventPublisher.publishStandardEvent(this,String.format("Количество Issue для проверки и синхронизации - {0}", issueParentList.size()), LogType.INFO);
+
         if(issueParentList.size() == 0){
-            logger.info("Не удалось получить Issue из IHelp, проверьте Url на наличие https");
+            eventPublisher.publishStandardEvent(this, "Завершение синхронизации из-за непредвиденной ошибки:", LogType.ERROR);
+            eventPublisher.publishStandardEvent(this, "Не удалось получить Issue из IHelp." +
+                    " Проверьте Url на наличие https или обратитесь к администратору", LogType.ERROR);
             return;
         }
         String childKey = "";
@@ -58,8 +65,9 @@ public class Scheduler {
                     childKey = label;
             }
             if(childKey.isEmpty()){
-                logger.error("Для Issue Ihelp {} отсутствует метка Issue на Omnichat", issue.getKey());
-                return;
+                eventPublisher.publishStandardEvent(this, String.format("Для Issue {0} из IHelp отсутствует метка на Issue из Omnichat",
+                        issue.getKey()), LogType.ERROR);
+                continue;
             }
             Issue childIssue = childJiraBusinessService.getIssue(childKey);
             if (childIssue != null) {
@@ -79,15 +87,18 @@ public class Scheduler {
 
                 childJiraBusinessService.updateIssueCommentsAndStatus(issue.getKey(), childIssue.getKey(), parentComment, childComment);
             } else {
-                logger.error("Дочерний Issue для {} не найден, либо присутствует больше одного Issue с одинаковым описанием", issue.getKey());
+                eventPublisher.publishStandardEvent(this, String.format("Для Issue {0} не найден дочерний Issue {1} из Omnichat",
+                        issue.getKey(), childKey), LogType.ERROR);
             }
         }
         Long endTime = System.currentTimeMillis();
         Long timeSync = endTime - startTime;
         if (timeSync > 60000) {
-            logger.info("Синхронизация завершена. Время выполнения: {} минут(а).", TimeUnit.MILLISECONDS.toMinutes(timeSync));
+            eventPublisher.publishStandardEvent(this, String.format("Синхронизация завершена. Время выполнения: {0} минут(а).",
+                    TimeUnit.MILLISECONDS.toMinutes(timeSync)), LogType.INFO);
         } else {
-            logger.info("Синхронизация завершена. Время выполнения: {} секунд(ы).", TimeUnit.MILLISECONDS.toSeconds(timeSync));
+            eventPublisher.publishStandardEvent(this, String.format("Синхронизация завершена. Время выполнения: {0} секунд(ы).",
+                    TimeUnit.MILLISECONDS.toSeconds(timeSync)), LogType.INFO);
         }
     }
 }

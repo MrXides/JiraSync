@@ -17,4 +17,6 @@ public interface JiraBusinessService {
     void updateIssueDescription(String issueKey, String newDescription);
 
     void deleteIssue(String issueKey, boolean deleteSubtasks);
+
+    void errorReport(String message);
 }

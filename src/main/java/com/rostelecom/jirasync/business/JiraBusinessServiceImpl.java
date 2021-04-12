@@ -113,4 +113,9 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
                 .claim();
     }
 
+    public void errorReport(String message){
+        IssueRestClient client = restClient.getIssueClient();
+        Issue issue = getIssue(System.getenv("Reporter"));
+        client.addComment(issue.getCommentsUri(), Comment.valueOf(message));
+    }
 }
