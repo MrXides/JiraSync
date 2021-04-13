@@ -19,4 +19,6 @@ public interface JiraBusinessService {
     void deleteIssue(String issueKey, boolean deleteSubtasks);
 
     void errorReport(String message);
+
+    void stressTest();
 }

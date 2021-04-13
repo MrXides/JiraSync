@@ -6,6 +6,8 @@ import com.atlassian.jira.rest.client.api.domain.*;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.rostelecom.jirasync.clients.JiraClient;
+import com.rostelecom.jirasync.enums.LogType;
+import com.rostelecom.jirasync.events.EventPublisher;
 import com.rostelecom.jirasync.settings.JiraSettings;
 import io.atlassian.util.concurrent.Promise;
 import org.slf4j.Logger;
@@ -18,9 +20,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class JiraBusinessServiceImpl implements JiraBusinessService {
+    @Autowired
+    private EventPublisher eventPublisher;
     @Autowired
     private JiraClient jiraClient;
 
@@ -117,5 +122,25 @@ public class JiraBusinessServiceImpl implements JiraBusinessService {
         IssueRestClient client = restClient.getIssueClient();
         Issue issue = getIssue(System.getenv("Reporter"));
         client.addComment(issue.getCommentsUri(), Comment.valueOf(message));
+    }
+
+    public void stressTest(){
+        eventPublisher.publishStandardEvent(this,"Stress Testing IHelp", LogType.INFO);
+        Long startTime = System.currentTimeMillis();
+        Set<String> set = new HashSet<>();
+        set.add("*all");
+        Promise<SearchResult> searchResultPromise = restClient.getSearchClient().searchJql("project = " + jiraSettings.getParentProjectKey() + " AND issueType = \"MES Ошибка\" AND status not in (Done, \"Waiting merge\", Отклонён) ORDER BY priority DESC", 500000, 0, set);
+        List<Issue> issueList =  (List<Issue>) searchResultPromise.claim().getIssues();
+        eventPublisher.publishStandardEvent(this, String.format("Получено %s Issue's", issueList.size()), LogType.INFO);
+
+        Long endTime = System.currentTimeMillis();
+        Long timeSync = endTime - startTime;
+        if (timeSync > 60000) {
+            eventPublisher.publishStandardEvent(this, String.format("Stress Testing completed. Время выполнения: %s минут(а).",
+                    TimeUnit.MILLISECONDS.toMinutes(timeSync)), LogType.INFO);
+        } else {
+            eventPublisher.publishStandardEvent(this, String.format("Stress Testing completed. Время выполнения: %s секунд(ы).",
+                    TimeUnit.MILLISECONDS.toSeconds(timeSync)), LogType.INFO);
+        }
     }
 }

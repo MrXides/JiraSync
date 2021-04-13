@@ -45,5 +45,15 @@ public class JiraIssueController {
         childJiraBusinessService.test();
     }
 
+    @GetMapping("/stresstestihelp")
+    protected void stresstestihelp(){
+        childJiraBusinessService.stressTest();
+    }
+
+    @GetMapping("/stresstestomnidev")
+    protected void stresstestomnidev(){
+        jiraBusinessService.stressTest();
+    }
+
 
 }

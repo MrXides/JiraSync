@@ -25,4 +25,6 @@ public interface ChildJiraBusinessService {
     void deleteIssue(String issueKey, boolean deleteSubtasks);
 
     void test();
+
+    void stressTest();
 }

@@ -21,10 +21,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toList;
 
@@ -242,5 +241,24 @@ public class ChildJiraBusinessServiceImpl implements ChildJiraBusinessService {
         }
     }
 
+    public void stressTest(){
+        eventPublisher.publishStandardEvent(this,"Stress Testing Omnidev", LogType.INFO);
+        Long startTime = System.currentTimeMillis();
+        Set<String> set = new HashSet<>();
+        set.add("*all");
+        Promise<SearchResult> searchResultPromise = restClient.getSearchClient().searchJql("project = " + jiraSettings.getChildProjectKey() + " AND issueType = \"MES Ошибка\" AND status not in (Done, \"Waiting merge\", Отклонён) ORDER BY priority DESC", 500000, 0, set);
+        List<Issue> issueList =  (List<Issue>) searchResultPromise.claim().getIssues();
+        eventPublisher.publishStandardEvent(this, String.format("Получено %s Issue's", issueList.size()), LogType.INFO);
+
+        Long endTime = System.currentTimeMillis();
+        Long timeSync = endTime - startTime;
+        if (timeSync > 60000) {
+            eventPublisher.publishStandardEvent(this, String.format("Stress Testing completed. Время выполнения: %s минут(а).",
+                    TimeUnit.MILLISECONDS.toMinutes(timeSync)), LogType.INFO);
+        } else {
+            eventPublisher.publishStandardEvent(this, String.format("Stress Testing completed. Время выполнения: %s секунд(ы).",
+                    TimeUnit.MILLISECONDS.toSeconds(timeSync)), LogType.INFO);
+        }
+    }
 
 }
