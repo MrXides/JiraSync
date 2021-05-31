@@ -12,4 +12,5 @@ import org.springframework.stereotype.Service;
 public class JiraSettings {
     private final String parentProjectKey = "OMNIDEV"; //Ihelp
     private final String childProjectKey = "MES"; //Omnichat
+    private final String childTwoProjectKey = "MES2";//TestJira MES2 (Omnichat)
 }

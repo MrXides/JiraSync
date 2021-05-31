@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "omnichatsettings.connectionProperties.jiraUri",
+      "type": "java.lang.String",
+      "description": "Description for omnichatsettings.connectionProperties.jiraUri."
+  }
+] }

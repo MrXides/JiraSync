@@ -1,0 +1,13 @@
+omnichatsettings:
+    jiraUri: https://jira.omnichat.tech
+    userName: t.jira
+    password: HT29eRws*V5&RzpR
+    socketTimeout: 300
+    requestTimeout: 300
+ihelp:
+    jiraUri: https://ihelp.rt.ru
+    userName: sergey.i.smirnov@rt.ru
+    password: 1510550250Ss
+   # B@fM0D~7
+    socketTimeout: 300
+    requestTimeout: 300

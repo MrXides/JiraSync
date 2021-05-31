@@ -21,7 +21,6 @@ public class CustomAsynchronousJiraRestClientFactory extends AsynchronousJiraRes
     }
 
     public JiraRestClient createWithBasicHttpAuthenticationCustom(final URI serverUri, final String username, final String password, final int socketTimeoutInSec, final int requestTimeoutInSec) {
-
         return createCustom(serverUri, new BasicHttpAuthenticationHandler(username, password), socketTimeoutInSec, requestTimeoutInSec);
     }
 

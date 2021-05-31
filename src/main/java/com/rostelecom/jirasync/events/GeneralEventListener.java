@@ -1,8 +1,6 @@
 package com.rostelecom.jirasync.events;
 
-import com.rostelecom.jirasync.business.JiraBusinessService;
-import com.rostelecom.jirasync.enums.LogType;
-import com.rostelecom.jirasync.scheduled.Scheduler;
+import com.rostelecom.jirasync.services.interfaces.JiraBusinessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

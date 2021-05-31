@@ -21,12 +21,12 @@ public class ConnectionSettings {
     private final String childJiraUrl;
 
     public ConnectionSettings(){
-        this.parentUserName = System.getenv("ParentJiraUserName");
-        this.parentPassword = System.getenv("ParentJiraPassword");
-        this.parentJiraUrl = System.getenv("ParentJiraUrl");
+        this.parentUserName = "ParentJiraUserName";
+        this.parentPassword = "ParentJiraPassword";
+        this.parentJiraUrl = "ParentJiraUrl";
 
-        this.childUserName = System.getenv("ChildJiraUserName");
-        this.childPassword = System.getenv("ChildJiraPassword");
-        this.childJiraUrl = System.getenv("ChildJiraUrl");
+        this.childUserName = "ChildJiraUserName";
+        this.childPassword = "ChildJiraPassword";
+        this.childJiraUrl = "ChildJiraUrl";
     }
 }

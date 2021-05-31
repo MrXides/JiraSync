@@ -61,7 +61,6 @@ public class CustomAsynchronousHttpClientFactory extends AsynchronousHttpClientF
         };
     }
 
-
     private static class NoOpEventPublisher implements EventPublisher {
         @Override
         public void publish(Object o) {
